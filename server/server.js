@@ -31,15 +31,29 @@ app.get('/api/health', (req, res) => {
 // API Routes
 app.use('/api', apiRoutes);
 
-// Connect to MongoDB
-mongoose.connect(MONGODB_URI, {
-  serverSelectionTimeoutMS: 4000
-}).then(() => {
-  console.log(` Connected to MongoDB at: ${MONGODB_URI}`);
-}).catch((err) => {
-  console.warn(` MongoDB Connection Warning: ${err.message}`);
-  console.log(' App will run with resilient memory/sample fallback if MongoDB is not running yet.');
-});
+// Connect to MongoDB with auto-fallback to local MongoDB
+async function connectDB() {
+  try {
+    console.log(`Connecting to MongoDB at: ${MONGODB_URI}...`);
+    await mongoose.connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 });
+    console.log(` Connected to primary MongoDB successfully!`);
+  } catch (primaryErr) {
+    console.warn(` Primary MongoDB Connection Warning: ${primaryErr.message}`);
+    if (MONGODB_URI.includes('mongodb+srv://') || !MONGODB_URI.includes('127.0.0.1')) {
+      console.log(' Attempting fallback to local MongoDB on 127.0.0.1:27017...');
+      try {
+        await mongoose.connect('mongodb://127.0.0.1:27017/portfolio_builder', { serverSelectionTimeoutMS: 3000 });
+        console.log(` Connected to local MongoDB fallback successfully!`);
+      } catch (localErr) {
+        console.warn(` Local MongoDB fallback also unavailable: ${localErr.message}`);
+        console.log(' Running with resilient in-memory portfolio store.');
+      }
+    } else {
+      console.log(' Running with resilient in-memory portfolio store.');
+    }
+  }
+}
+connectDB();
 
 app.listen(PORT, () => {
   console.log(`=======================================================`);

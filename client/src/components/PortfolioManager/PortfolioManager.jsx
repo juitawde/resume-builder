@@ -10,17 +10,15 @@ import {
   Wrench, 
   Plus, 
   Trash2, 
-  Edit3, 
-  Save, 
-  Check, 
-  Sparkles,
-  ExternalLink
+  ExternalLink,
+  Save,
+  Check
 } from 'lucide-react';
 
 export default function PortfolioManager({ portfolio, setPortfolio, onSave, isSaving }) {
   const [activeCategory, setActiveCategory] = useState('personal');
-  const [newItemModal, setNewItemModal] = useState(null); // category name or null
-  const [editingItem, setEditingItem] = useState(null); // { category, index, data }
+  const [newItemModal, setNewItemModal] = useState(null);
+  const [skillFilter, setSkillFilter] = useState('All');
 
   // Handlers for Personal Info & Summary
   const handlePersonalInfoChange = (field, value) => {
@@ -59,232 +57,250 @@ export default function PortfolioManager({ portfolio, setPortfolio, onSave, isSa
 
   const categories = [
     { id: 'personal', label: 'Personal & Contact', icon: User, count: null },
-    { id: 'skills', label: 'Technical & Soft Skills', icon: Wrench, count: portfolio?.skills?.length || 0 },
-    { id: 'experience', label: 'Work & Internships', icon: Briefcase, count: portfolio?.experience?.length || 0 },
+    { id: 'skills', label: 'Skills Matrix', icon: Wrench, count: portfolio?.skills?.length || 0 },
+    { id: 'experience', label: 'Work Experience', icon: Briefcase, count: portfolio?.experience?.length || 0 },
     { id: 'projects', label: 'Projects & Demos', icon: FolderGit2, count: portfolio?.projects?.length || 0 },
     { id: 'education', label: 'Education', icon: GraduationCap, count: portfolio?.education?.length || 0 },
     { id: 'certifications', label: 'Certifications', icon: Award, count: portfolio?.certifications?.length || 0 },
     { id: 'achievements', label: 'Achievements', icon: Award, count: portfolio?.achievements?.length || 0 },
-    { id: 'publications', label: 'Research & Publications', icon: BookOpen, count: portfolio?.publications?.length || 0 },
+    { id: 'publications', label: 'Publications', icon: BookOpen, count: portfolio?.publications?.length || 0 },
     { id: 'languages', label: 'Languages', icon: Languages, count: portfolio?.languages?.length || 0 }
   ];
 
+  const skillCategories = ['All', 'Frontend', 'Backend', 'Database', 'Cloud & DevOps', 'AI & Machine Learning', 'Languages', 'Tools & Platforms', 'Soft Skills'];
+
+  const filteredSkills = (portfolio?.skills || []).filter(s => {
+    if (skillFilter === 'All') return true;
+    return s.category === skillFilter;
+  });
+
   return (
-    <div style={{ maxWidth: 1400, margin: '30px auto', padding: '0 24px' }}>
-      {/* Top Banner */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* Category Pills Header */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: 16,
-        marginBottom: 24
+        gap: 8,
+        overflowX: 'auto',
+        paddingBottom: 4,
+        scrollbarWidth: 'none'
       }}>
-        <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--ink)' }}>
-            Portfolio Database
-          </h1>
-          <p style={{ color: 'var(--muted)', fontSize: '0.92rem' }}>
-            Maintain all your verified professional records, competencies, and achievements in one central MongoDB store.
-          </p>
-        </div>
-
-        <button 
-          onClick={onSave} 
-          disabled={isSaving}
-          className="btn btn-primary"
-          style={{ padding: '10px 24px' }}
-        >
-          <Save size={18} />
-          {isSaving ? 'Saving Changes...' : 'Save Portfolio to Database'}
-        </button>
+        {categories.map(cat => {
+          const Icon = cat.icon;
+          const isActive = activeCategory === cat.id;
+          return (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '9px 16px',
+                borderRadius: '12px',
+                border: `1px solid ${isActive ? 'var(--rose)' : 'var(--line)'}`,
+                background: isActive ? 'var(--rose-light)' : '#ffffff',
+                color: isActive ? 'var(--rose-dark)' : 'var(--ink)',
+                fontWeight: isActive ? 700 : 500,
+                fontSize: '0.86rem',
+                cursor: 'pointer',
+                transition: 'var(--transition-fast)',
+                whiteSpace: 'nowrap',
+                boxShadow: isActive ? 'var(--shadow-xs)' : 'none'
+              }}
+            >
+              <Icon size={16} color={isActive ? 'var(--rose-dark)' : 'var(--muted)'} />
+              <span>{cat.label}</span>
+              {cat.count !== null && (
+                <span className={isActive ? 'badge badge-rose' : 'badge badge-neutral'} style={{ fontSize: '0.7rem', padding: '1px 6px' }}>
+                  {cat.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Main Grid: Sidebar Pills + Detail Panel */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '280px 1fr',
-        gap: 24,
-        alignItems: 'start'
-      }}>
-        {/* Category Selector Sidebar */}
-        <div className="glass-panel" style={{ padding: 12 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {categories.map(cat => {
-              const Icon = cat.icon;
-              const isActive = activeCategory === cat.id;
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.id)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '12px 14px',
-                    borderRadius: '10px',
-                    border: 'none',
-                    background: isActive ? 'var(--rose-light)' : 'transparent',
-                    color: isActive ? 'var(--rose-dark)' : 'var(--ink)',
-                    fontWeight: isActive ? 700 : 500,
-                    cursor: 'pointer',
-                    transition: 'var(--transition)',
-                    textAlign: 'left',
-                    fontFamily: 'inherit',
-                    fontSize: '0.9rem'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <Icon size={18} color={isActive ? 'var(--rose-dark)' : 'var(--muted)'} />
-                    <span>{cat.label}</span>
-                  </div>
-                  {cat.count !== null && (
-                    <span className={isActive ? 'badge badge-rose' : 'badge badge-neutral'} style={{ fontSize: '0.72rem' }}>
-                      {cat.count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Content Area */}
-        <div className="glass-panel" style={{ padding: 28 }}>
-          {/* 1. PERSONAL INFO & SUMMARY */}
-          {activeCategory === 'personal' && (
-            <div>
-              <div style={{ borderBottom: '1px solid var(--line)', paddingBottom: 14, marginBottom: 20 }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Personal Information & Objective</h2>
-                <p style={{ fontSize: '0.84rem', color: 'var(--muted)' }}>Contact details, online presence, and default career summary.</p>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
-                <div className="form-group">
-                  <label>Full Name</label>
-                  <input
-                    type="text"
-                    value={portfolio?.personalInfo?.fullName || ''}
-                    onChange={e => handlePersonalInfoChange('fullName', e.target.value)}
-                    placeholder="e.g. Aarav Sharma"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Professional Title</label>
-                  <input
-                    type="text"
-                    value={portfolio?.personalInfo?.title || ''}
-                    onChange={e => handlePersonalInfoChange('title', e.target.value)}
-                    placeholder="e.g. Senior Full-Stack & AI Systems Engineer"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Email Address</label>
-                  <input
-                    type="email"
-                    value={portfolio?.personalInfo?.email || ''}
-                    onChange={e => handlePersonalInfoChange('email', e.target.value)}
-                    placeholder="e.g. aarav.dev@example.com"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Phone Number</label>
-                  <input
-                    type="tel"
-                    value={portfolio?.personalInfo?.phone || ''}
-                    onChange={e => handlePersonalInfoChange('phone', e.target.value)}
-                    placeholder="e.g. +1 (555) 749-2810"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Location</label>
-                  <input
-                    type="text"
-                    value={portfolio?.personalInfo?.location || ''}
-                    onChange={e => handlePersonalInfoChange('location', e.target.value)}
-                    placeholder="e.g. San Francisco, CA"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>LinkedIn URL</label>
-                  <input
-                    type="url"
-                    value={portfolio?.personalInfo?.linkedIn || ''}
-                    onChange={e => handlePersonalInfoChange('linkedIn', e.target.value)}
-                    placeholder="https://linkedin.com/in/username"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>GitHub Profile</label>
-                  <input
-                    type="url"
-                    value={portfolio?.personalInfo?.github || ''}
-                    onChange={e => handlePersonalInfoChange('github', e.target.value)}
-                    placeholder="https://github.com/username"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Portfolio / Personal Website</label>
-                  <input
-                    type="url"
-                    value={portfolio?.personalInfo?.website || ''}
-                    onChange={e => handlePersonalInfoChange('website', e.target.value)}
-                    placeholder="https://aaravsharma.dev"
-                  />
-                </div>
-              </div>
-
-              <div className="form-group" style={{ marginTop: 12 }}>
-                <label>Career Objective / Professional Summary</label>
-                <textarea
-                  rows={4}
-                  value={portfolio?.professionalSummary || ''}
-                  onChange={e => handleSummaryChange(e.target.value)}
-                  placeholder="Summarize your background, core technical focus, and proven impact..."
-                />
+      {/* Main Content Area in Clean Card */}
+      <div className="card">
+        {/* ================= 1. PERSONAL INFO & SUMMARY ================= */}
+        {activeCategory === 'personal' && (
+          <div>
+            <div className="card-header">
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Personal Information & Career Summary</h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>Contact info, links, and baseline career objective.</p>
               </div>
             </div>
-          )}
 
-          {/* 2. SKILLS */}
-          {activeCategory === 'skills' && (
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--line)', paddingBottom: 14, marginBottom: 20 }}>
-                <div>
-                  <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Technical & Soft Skills Matrix</h2>
-                  <p style={{ fontSize: '0.84rem', color: 'var(--muted)' }}>Categorized competencies with proficiency ratings.</p>
+            <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              {/* Basic Details */}
+              <div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--rose-dark)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>
+                  Contact & Identification
                 </div>
-                <button onClick={() => setNewItemModal('skills')} className="btn btn-primary btn-sm">
-                  <Plus size={15} /> Add Skill
-                </button>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+                  <div className="form-group">
+                    <label>Full Name</label>
+                    <input
+                      type="text"
+                      value={portfolio?.personalInfo?.fullName || ''}
+                      onChange={e => handlePersonalInfoChange('fullName', e.target.value)}
+                      placeholder="e.g. Aarav Sharma"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Professional Title</label>
+                    <input
+                      type="text"
+                      value={portfolio?.personalInfo?.title || ''}
+                      onChange={e => handlePersonalInfoChange('title', e.target.value)}
+                      placeholder="e.g. Senior Full-Stack & AI Systems Engineer"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Email Address</label>
+                    <input
+                      type="email"
+                      value={portfolio?.personalInfo?.email || ''}
+                      onChange={e => handlePersonalInfoChange('email', e.target.value)}
+                      placeholder="e.g. aarav.dev@example.com"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Phone Number</label>
+                    <input
+                      type="tel"
+                      value={portfolio?.personalInfo?.phone || ''}
+                      onChange={e => handlePersonalInfoChange('phone', e.target.value)}
+                      placeholder="e.g. +1 (555) 749-2810"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Location</label>
+                    <input
+                      type="text"
+                      value={portfolio?.personalInfo?.location || ''}
+                      onChange={e => handlePersonalInfoChange('location', e.target.value)}
+                      placeholder="e.g. San Francisco, CA"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Portfolio / Personal Website</label>
+                    <input
+                      type="url"
+                      value={portfolio?.personalInfo?.website || ''}
+                      onChange={e => handlePersonalInfoChange('website', e.target.value)}
+                      placeholder="https://aaravsharma.dev"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                {(portfolio?.skills || []).map((skill, idx) => (
+              {/* Online Profiles */}
+              <div style={{ borderTop: '1px solid var(--line)', paddingTop: 18 }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--rose-dark)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>
+                  Online Profiles & Socials
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+                  <div className="form-group">
+                    <label>LinkedIn Profile URL</label>
+                    <input
+                      type="url"
+                      value={portfolio?.personalInfo?.linkedIn || ''}
+                      onChange={e => handlePersonalInfoChange('linkedIn', e.target.value)}
+                      placeholder="https://linkedin.com/in/username"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>GitHub Profile URL</label>
+                    <input
+                      type="url"
+                      value={portfolio?.personalInfo?.github || ''}
+                      onChange={e => handlePersonalInfoChange('github', e.target.value)}
+                      placeholder="https://github.com/username"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Career Summary */}
+              <div style={{ borderTop: '1px solid var(--line)', paddingTop: 18 }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label>Default Professional Summary / Objective</label>
+                  <textarea
+                    rows={4}
+                    value={portfolio?.professionalSummary || ''}
+                    onChange={e => handleSummaryChange(e.target.value)}
+                    placeholder="Provide an overview of your background, core strengths, and documented achievements..."
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ================= 2. SKILLS MATRIX ================= */}
+        {activeCategory === 'skills' && (
+          <div>
+            <div className="card-header">
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Technical & Soft Skills Matrix</h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>Categorized competencies with proficiency levels.</p>
+              </div>
+              <button onClick={() => setNewItemModal('skills')} className="btn btn-primary btn-sm">
+                <Plus size={15} /> Add Skill
+              </button>
+            </div>
+
+            <div className="card-body">
+              {/* Category Filter Pills */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20 }}>
+                {skillCategories.map(sc => (
+                  <button
+                    key={sc}
+                    onClick={() => setSkillFilter(sc)}
+                    className="btn btn-sm"
+                    style={{
+                      background: skillFilter === sc ? 'var(--rose-light)' : '#ffffff',
+                      borderColor: skillFilter === sc ? 'var(--rose)' : 'var(--line)',
+                      color: skillFilter === sc ? 'var(--rose-dark)' : 'var(--muted)',
+                      fontWeight: skillFilter === sc ? 700 : 500,
+                      fontSize: '0.78rem',
+                      padding: '5px 12px'
+                    }}
+                  >
+                    {sc}
+                  </button>
+                ))}
+              </div>
+
+              {/* Skills Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: 12 }}>
+                {filteredSkills.map((skill, idx) => (
                   <div 
                     key={idx}
                     style={{
                       background: '#ffffff',
                       border: '1px solid var(--line)',
                       borderRadius: '12px',
-                      padding: '8px 14px',
+                      padding: '12px 14px',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 10,
-                      boxShadow: 'var(--shadow-sm)'
+                      justifyContent: 'space-between',
+                      boxShadow: 'var(--shadow-xs)'
                     }}
                   >
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--ink)' }}>{skill.name}</div>
-                      <div style={{ fontSize: '0.74rem', color: 'var(--muted)', display: 'flex', gap: 6 }}>
-                        <span>{skill.category}</span> • <span>{skill.proficiencyLevel}</span> • <span>{skill.yearsOfExperience} yrs</span>
+                      <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--ink)' }}>{skill.name}</div>
+                      <div style={{ fontSize: '0.74rem', color: 'var(--muted)', display: 'flex', gap: 6, marginTop: 2 }}>
+                        <span>{skill.category}</span> • <span>{skill.proficiencyLevel}</span>
                       </div>
                     </div>
                     <button
@@ -292,99 +308,101 @@ export default function PortfolioManager({ portfolio, setPortfolio, onSave, isSa
                       style={{ background: 'none', border: 'none', color: '#c46274', cursor: 'pointer', padding: 4 }}
                       title="Delete skill"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={15} />
                     </button>
                   </div>
                 ))}
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* 3. WORK EXPERIENCE */}
-          {activeCategory === 'experience' && (
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--line)', paddingBottom: 14, marginBottom: 20 }}>
-                <div>
-                  <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Work Experience & Internships</h2>
-                  <p style={{ fontSize: '0.84rem', color: 'var(--muted)' }}>Documented employment history with verified metrics and achievements.</p>
-                </div>
-                <button onClick={() => setNewItemModal('experience')} className="btn btn-primary btn-sm">
-                  <Plus size={15} /> Add Experience
-                </button>
+        {/* ================= 3. WORK EXPERIENCE ================= */}
+        {activeCategory === 'experience' && (
+          <div>
+            <div className="card-header">
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Work Experience & Internships</h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>Employment history with verified highlights and technologies.</p>
               </div>
+              <button onClick={() => setNewItemModal('experience')} className="btn btn-primary btn-sm">
+                <Plus size={15} /> Add Experience
+              </button>
+            </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-                {(portfolio?.experience || []).map((exp, idx) => (
-                  <div 
-                    key={idx}
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid var(--line)',
-                      borderRadius: '14px',
-                      padding: '18px 20px',
-                      boxShadow: 'var(--shadow-sm)'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
-                      <div>
-                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--ink)' }}>{exp.role}</h3>
-                        <div style={{ color: 'var(--rose-dark)', fontWeight: 600, fontSize: '0.92rem' }}>
-                          {exp.company} <span style={{ color: 'var(--muted)', fontWeight: 400 }}>• {exp.location || 'Remote'}</span>
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span className="badge badge-rose">
-                          {exp.startDate || 'Start'} – {exp.isCurrent ? 'Present' : (exp.endDate || 'Present')}
-                        </span>
-                        <button
-                          onClick={() => handleDeleteItem('experience', idx)}
-                          className="btn btn-sm btn-danger"
-                          title="Delete entry"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+            <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              {(portfolio?.experience || []).map((exp, idx) => (
+                <div 
+                  key={idx}
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid var(--line)',
+                    borderRadius: '14px',
+                    padding: '20px 24px',
+                    boxShadow: 'var(--shadow-xs)'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
+                    <div>
+                      <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--ink)' }}>{exp.role}</h4>
+                      <div style={{ color: 'var(--rose-dark)', fontWeight: 700, fontSize: '0.92rem', marginTop: 2 }}>
+                        {exp.company} <span style={{ color: 'var(--muted)', fontWeight: 400 }}>• {exp.location || 'Remote'}</span>
                       </div>
                     </div>
-
-                    {exp.description && (
-                      <p style={{ fontSize: '0.86rem', color: 'var(--ink)', margin: '8px 0', fontStyle: 'italic' }}>
-                        {exp.description}
-                      </p>
-                    )}
-
-                    {exp.technologiesUsed && exp.technologiesUsed.length > 0 && (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '10px 0' }}>
-                        {exp.technologiesUsed.map((t, ti) => (
-                          <span key={ti} className="badge badge-lilac" style={{ fontSize: '0.72rem' }}>{t}</span>
-                        ))}
-                      </div>
-                    )}
-
-                    <ul style={{ paddingLeft: 20, margin: '10px 0 0 0', display: 'flex', flexDirection: 'column', gap: 5 }}>
-                      {(exp.highlights || []).map((h, hi) => (
-                        <li key={hi} style={{ fontSize: '0.86rem', color: 'var(--ink)', lineHeight: 1.45 }}>{h}</li>
-                      ))}
-                    </ul>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span className="badge badge-rose">
+                        {exp.startDate || 'Start'} – {exp.isCurrent ? 'Present' : (exp.endDate || 'Present')}
+                      </span>
+                      <button
+                        onClick={() => handleDeleteItem('experience', idx)}
+                        className="btn btn-sm btn-danger"
+                        title="Delete entry"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
 
-          {/* 4. PROJECTS */}
-          {activeCategory === 'projects' && (
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--line)', paddingBottom: 14, marginBottom: 20 }}>
-                <div>
-                  <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Featured Projects & Technical Demos</h2>
-                  <p style={{ fontSize: '0.84rem', color: 'var(--muted)' }}>Real applications, repositories, and technical contributions.</p>
+                  {exp.description && (
+                    <p style={{ fontSize: '0.88rem', color: 'var(--ink)', margin: '10px 0', fontStyle: 'italic' }}>
+                      {exp.description}
+                    </p>
+                  )}
+
+                  {exp.technologiesUsed && exp.technologiesUsed.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '10px 0' }}>
+                      {exp.technologiesUsed.map((t, ti) => (
+                        <span key={ti} className="badge badge-lilac" style={{ fontSize: '0.74rem' }}>{t}</span>
+                      ))}
+                    </div>
+                  )}
+
+                  <ul style={{ paddingLeft: 18, margin: '12px 0 0 0', display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    {(exp.highlights || []).map((h, hi) => (
+                      <li key={hi} style={{ fontSize: '0.86rem', color: 'var(--ink)', lineHeight: 1.5 }}>{h}</li>
+                    ))}
+                  </ul>
                 </div>
-                <button onClick={() => setNewItemModal('projects')} className="btn btn-primary btn-sm">
-                  <Plus size={15} /> Add Project
-                </button>
-              </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: 16 }}>
+        {/* ================= 4. PROJECTS ================= */}
+        {activeCategory === 'projects' && (
+          <div>
+            <div className="card-header">
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Featured Projects & Demos</h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>Shipped applications, GitHub repositories, and system demos.</p>
+              </div>
+              <button onClick={() => setNewItemModal('projects')} className="btn btn-primary btn-sm">
+                <Plus size={15} /> Add Project
+              </button>
+            </div>
+
+            <div className="card-body">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: 18 }}>
                 {(portfolio?.projects || []).map((proj, idx) => (
                   <div
                     key={idx}
@@ -392,51 +410,51 @@ export default function PortfolioManager({ portfolio, setPortfolio, onSave, isSa
                       background: '#ffffff',
                       border: '1px solid var(--line)',
                       borderRadius: '14px',
-                      padding: '18px 20px',
+                      padding: '20px',
                       display: 'flex',
                       flexDirection: 'column',
                       justifyContent: 'space-between',
-                      boxShadow: 'var(--shadow-sm)'
+                      boxShadow: 'var(--shadow-xs)'
                     }}
                   >
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
-                          <h3 style={{ fontSize: '1.05rem', fontWeight: 700 }}>{proj.title}</h3>
-                          <span style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>{proj.role || 'Developer'}</span>
+                          <h4 style={{ fontSize: '1.05rem', fontWeight: 800 }}>{proj.title}</h4>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>{proj.role || 'Developer'}</span>
                         </div>
                         <button
                           onClick={() => handleDeleteItem('projects', idx)}
                           style={{ background: 'none', border: 'none', color: '#c46274', cursor: 'pointer' }}
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={15} />
                         </button>
                       </div>
 
-                      <p style={{ fontSize: '0.85rem', color: 'var(--ink)', margin: '8px 0' }}>{proj.description}</p>
+                      <p style={{ fontSize: '0.86rem', color: 'var(--ink)', margin: '10px 0' }}>{proj.description}</p>
 
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '8px 0' }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '10px 0' }}>
                         {(proj.techStack || []).map((t, ti) => (
-                          <span key={ti} className="badge badge-sage" style={{ fontSize: '0.72rem' }}>{t}</span>
+                          <span key={ti} className="badge badge-sage" style={{ fontSize: '0.74rem' }}>{t}</span>
                         ))}
                       </div>
 
                       <ul style={{ paddingLeft: 18, margin: '10px 0', display: 'flex', flexDirection: 'column', gap: 4 }}>
                         {(proj.highlights || []).map((h, hi) => (
-                          <li key={hi} style={{ fontSize: '0.82rem', color: 'var(--ink)' }}>{h}</li>
+                          <li key={hi} style={{ fontSize: '0.83rem', color: 'var(--ink)' }}>{h}</li>
                         ))}
                       </ul>
                     </div>
 
-                    <div style={{ display: 'flex', gap: 12, paddingTop: 10, borderTop: '1px solid var(--line)', marginTop: 10 }}>
+                    <div style={{ display: 'flex', gap: 14, paddingTop: 12, borderTop: '1px solid var(--line)', marginTop: 12 }}>
                       {proj.liveUrl && (
-                        <a href={proj.liveUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <ExternalLink size={13} /> Live App
+                        <a href={proj.liveUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <ExternalLink size={13} /> Live Demo
                         </a>
                       )}
                       {proj.githubUrl && (
-                        <a href={proj.githubUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <FolderGit2 size={13} /> GitHub Code
+                        <a href={proj.githubUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <FolderGit2 size={13} /> Repository
                         </a>
                       )}
                     </div>
@@ -444,70 +462,73 @@ export default function PortfolioManager({ portfolio, setPortfolio, onSave, isSa
                 ))}
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* 5. EDUCATION */}
-          {activeCategory === 'education' && (
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--line)', paddingBottom: 14, marginBottom: 20 }}>
-                <div>
-                  <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Educational Qualifications</h2>
-                  <p style={{ fontSize: '0.84rem', color: 'var(--muted)' }}>Universities, degrees, and academic accolades.</p>
-                </div>
-                <button onClick={() => setNewItemModal('education')} className="btn btn-primary btn-sm">
-                  <Plus size={15} /> Add Education
-                </button>
+        {/* ================= 5. EDUCATION ================= */}
+        {activeCategory === 'education' && (
+          <div>
+            <div className="card-header">
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Educational Qualifications</h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>Universities, degrees, and academic performance.</p>
               </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {(portfolio?.education || []).map((ed, idx) => (
-                  <div 
-                    key={idx}
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid var(--line)',
-                      borderRadius: '12px',
-                      padding: '16px 20px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <div>
-                      <h3 style={{ fontSize: '1rem', fontWeight: 700 }}>{ed.degree} in {ed.fieldOfStudy}</h3>
-                      <div style={{ color: 'var(--rose-dark)', fontSize: '0.88rem', fontWeight: 600 }}>
-                        {ed.institution} <span style={{ color: 'var(--muted)', fontWeight: 400 }}>• {ed.gradeOrGpa}</span>
-                      </div>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: 2 }}>
-                        {ed.startDate} – {ed.endDate} | {ed.location}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteItem('education', idx)}
-                      className="btn btn-sm btn-danger"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ))}
-              </div>
+              <button onClick={() => setNewItemModal('education')} className="btn btn-primary btn-sm">
+                <Plus size={15} /> Add Education
+              </button>
             </div>
-          )}
 
-          {/* 6. CERTIFICATIONS */}
-          {activeCategory === 'certifications' && (
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--line)', paddingBottom: 14, marginBottom: 20 }}>
-                <div>
-                  <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Certifications & Verified Credentials</h2>
-                  <p style={{ fontSize: '0.84rem', color: 'var(--muted)' }}>Industry licenses and cloud/technical certifications.</p>
+            <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {(portfolio?.education || []).map((ed, idx) => (
+                <div 
+                  key={idx}
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid var(--line)',
+                    borderRadius: '12px',
+                    padding: '18px 22px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    boxShadow: 'var(--shadow-xs)'
+                  }}
+                >
+                  <div>
+                    <h4 style={{ fontSize: '1.02rem', fontWeight: 800 }}>{ed.degree} in {ed.fieldOfStudy}</h4>
+                    <div style={{ color: 'var(--rose-dark)', fontSize: '0.9rem', fontWeight: 700 }}>
+                      {ed.institution} <span style={{ color: 'var(--muted)', fontWeight: 400 }}>• {ed.gradeOrGpa}</span>
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginTop: 3 }}>
+                      {ed.startDate} – {ed.endDate} | {ed.location}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteItem('education', idx)}
+                    className="btn btn-sm btn-danger"
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </div>
-                <button onClick={() => setNewItemModal('certifications')} className="btn btn-primary btn-sm">
-                  <Plus size={15} /> Add Certification
-                </button>
-              </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 14 }}>
+        {/* ================= 6. CERTIFICATIONS ================= */}
+        {activeCategory === 'certifications' && (
+          <div>
+            <div className="card-header">
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Certifications & Credentials</h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>Verified industry licenses, cloud certifications, and credentials.</p>
+              </div>
+              <button onClick={() => setNewItemModal('certifications')} className="btn btn-primary btn-sm">
+                <Plus size={15} /> Add Certification
+              </button>
+            </div>
+
+            <div className="card-body">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 }}>
                 {(portfolio?.certifications || []).map((cert, idx) => (
                   <div
                     key={idx}
@@ -515,15 +536,16 @@ export default function PortfolioManager({ portfolio, setPortfolio, onSave, isSa
                       background: '#ffffff',
                       border: '1px solid var(--line)',
                       borderRadius: '12px',
-                      padding: '16px',
+                      padding: '18px',
                       display: 'flex',
                       flexDirection: 'column',
-                      justifyContent: 'space-between'
+                      justifyContent: 'space-between',
+                      boxShadow: 'var(--shadow-xs)'
                     }}
                   >
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <h3 style={{ fontSize: '0.98rem', fontWeight: 700 }}>{cert.name}</h3>
+                        <h4 style={{ fontSize: '1rem', fontWeight: 800 }}>{cert.name}</h4>
                         <button
                           onClick={() => handleDeleteItem('certifications', idx)}
                           style={{ background: 'none', border: 'none', color: '#c46274', cursor: 'pointer' }}
@@ -531,8 +553,8 @@ export default function PortfolioManager({ portfolio, setPortfolio, onSave, isSa
                           <Trash2 size={14} />
                         </button>
                       </div>
-                      <div style={{ color: 'var(--rose-dark)', fontSize: '0.85rem', fontWeight: 600 }}>{cert.issuingOrg}</div>
-                      <div style={{ fontSize: '0.76rem', color: 'var(--muted)', marginTop: 4 }}>
+                      <div style={{ color: 'var(--rose-dark)', fontSize: '0.88rem', fontWeight: 700, marginTop: 2 }}>{cert.issuingOrg}</div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: 4 }}>
                         Issued: {cert.issueDate} {cert.credentialId && `• ID: ${cert.credentialId}`}
                       </div>
                     </div>
@@ -540,109 +562,113 @@ export default function PortfolioManager({ portfolio, setPortfolio, onSave, isSa
                 ))}
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* 7. ACHIEVEMENTS & AWARDS */}
-          {activeCategory === 'achievements' && (
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--line)', paddingBottom: 14, marginBottom: 20 }}>
-                <div>
-                  <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Achievements & Honors</h2>
-                  <p style={{ fontSize: '0.84rem', color: 'var(--muted)' }}>Hackathons, recognition, and performance awards.</p>
-                </div>
-                <button onClick={() => setNewItemModal('achievements')} className="btn btn-primary btn-sm">
-                  <Plus size={15} /> Add Achievement
-                </button>
+        {/* ================= 7. ACHIEVEMENTS ================= */}
+        {activeCategory === 'achievements' && (
+          <div>
+            <div className="card-header">
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Achievements & Honors</h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>Hackathons, recognition, and performance honors.</p>
               </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {(portfolio?.achievements || []).map((ach, idx) => (
-                  <div 
-                    key={idx}
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid var(--line)',
-                      borderRadius: '12px',
-                      padding: '16px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <div>
-                      <h3 style={{ fontSize: '0.96rem', fontWeight: 700 }}>{ach.title}</h3>
-                      <div style={{ color: 'var(--rose-dark)', fontSize: '0.85rem' }}>{ach.issuer} ({ach.date})</div>
-                      <p style={{ fontSize: '0.82rem', color: 'var(--muted)', marginTop: 4 }}>{ach.description}</p>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteItem('achievements', idx)}
-                      className="btn btn-sm btn-danger"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ))}
-              </div>
+              <button onClick={() => setNewItemModal('achievements')} className="btn btn-primary btn-sm">
+                <Plus size={15} /> Add Achievement
+              </button>
             </div>
-          )}
 
-          {/* 8. PUBLICATIONS */}
-          {activeCategory === 'publications' && (
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--line)', paddingBottom: 14, marginBottom: 20 }}>
-                <div>
-                  <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Research Papers & Publications</h2>
-                  <p style={{ fontSize: '0.84rem', color: 'var(--muted)' }}>Conference papers, academic journals, and published articles.</p>
-                </div>
-                <button onClick={() => setNewItemModal('publications')} className="btn btn-primary btn-sm">
-                  <Plus size={15} /> Add Publication
-                </button>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {(portfolio?.publications || []).map((pub, idx) => (
-                  <div 
-                    key={idx}
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid var(--line)',
-                      borderRadius: '12px',
-                      padding: '16px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start'
-                    }}
-                  >
-                    <div>
-                      <h3 style={{ fontSize: '0.96rem', fontWeight: 700 }}>{pub.title}</h3>
-                      <div style={{ color: 'var(--rose-dark)', fontSize: '0.85rem' }}>{pub.publisher} ({pub.publicationDate})</div>
-                      <p style={{ fontSize: '0.84rem', color: 'var(--ink)', marginTop: 4 }}>{pub.summary}</p>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteItem('publications', idx)}
-                      className="btn btn-sm btn-danger"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+            <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {(portfolio?.achievements || []).map((ach, idx) => (
+                <div 
+                  key={idx}
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid var(--line)',
+                    borderRadius: '12px',
+                    padding: '18px 20px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    boxShadow: 'var(--shadow-xs)'
+                  }}
+                >
+                  <div>
+                    <h4 style={{ fontSize: '1rem', fontWeight: 800 }}>{ach.title}</h4>
+                    <div style={{ color: 'var(--rose-dark)', fontSize: '0.86rem', fontWeight: 600 }}>{ach.issuer} ({ach.date})</div>
+                    <p style={{ fontSize: '0.84rem', color: 'var(--muted)', marginTop: 4 }}>{ach.description}</p>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 9. LANGUAGES */}
-          {activeCategory === 'languages' && (
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--line)', paddingBottom: 14, marginBottom: 20 }}>
-                <div>
-                  <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Languages & Extra Competencies</h2>
-                  <p style={{ fontSize: '0.84rem', color: 'var(--muted)' }}>Spoken languages and cross-functional competencies.</p>
+                  <button
+                    onClick={() => handleDeleteItem('achievements', idx)}
+                    className="btn btn-sm btn-danger"
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </div>
-                <button onClick={() => setNewItemModal('languages')} className="btn btn-primary btn-sm">
-                  <Plus size={15} /> Add Language
-                </button>
-              </div>
+              ))}
+            </div>
+          </div>
+        )}
 
+        {/* ================= 8. PUBLICATIONS ================= */}
+        {activeCategory === 'publications' && (
+          <div>
+            <div className="card-header">
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Research Papers & Publications</h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>Published articles, academic journals, and technical papers.</p>
+              </div>
+              <button onClick={() => setNewItemModal('publications')} className="btn btn-primary btn-sm">
+                <Plus size={15} /> Add Publication
+              </button>
+            </div>
+
+            <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {(portfolio?.publications || []).map((pub, idx) => (
+                <div 
+                  key={idx}
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid var(--line)',
+                    borderRadius: '12px',
+                    padding: '18px 20px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    boxShadow: 'var(--shadow-xs)'
+                  }}
+                >
+                  <div>
+                    <h4 style={{ fontSize: '1rem', fontWeight: 800 }}>{pub.title}</h4>
+                    <div style={{ color: 'var(--rose-dark)', fontSize: '0.86rem', fontWeight: 600 }}>{pub.publisher} ({pub.publicationDate})</div>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--ink)', marginTop: 6, lineHeight: 1.5 }}>{pub.summary}</p>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteItem('publications', idx)}
+                    className="btn btn-sm btn-danger"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ================= 9. LANGUAGES ================= */}
+        {activeCategory === 'languages' && (
+          <div>
+            <div className="card-header">
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Languages & Spoken Competencies</h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>Spoken languages and international proficiencies.</p>
+              </div>
+              <button onClick={() => setNewItemModal('languages')} className="btn btn-primary btn-sm">
+                <Plus size={15} /> Add Language
+              </button>
+            </div>
+
+            <div className="card-body">
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
                 {(portfolio?.languages || []).map((lang, idx) => (
                   <div 
@@ -650,20 +676,21 @@ export default function PortfolioManager({ portfolio, setPortfolio, onSave, isSa
                     style={{
                       background: '#ffffff',
                       border: '1px solid var(--line)',
-                      borderRadius: '10px',
-                      padding: '10px 16px',
+                      borderRadius: '12px',
+                      padding: '12px 18px',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 12
+                      gap: 12,
+                      boxShadow: 'var(--shadow-xs)'
                     }}
                   >
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.92rem' }}>{lang.name}</div>
-                      <span className="badge badge-lilac" style={{ fontSize: '0.72rem' }}>{lang.proficiency}</span>
+                      <div style={{ fontWeight: 800, fontSize: '0.94rem' }}>{lang.name}</div>
+                      <span className="badge badge-lilac" style={{ fontSize: '0.74rem', marginTop: 3 }}>{lang.proficiency}</span>
                     </div>
                     <button
                       onClick={() => handleDeleteItem('languages', idx)}
-                      style={{ background: 'none', border: 'none', color: '#c46274', cursor: 'pointer' }}
+                      style={{ background: 'none', border: 'none', color: '#c46274', cursor: 'pointer', marginLeft: 6 }}
                     >
                       <Trash2 size={14} />
                     </button>
@@ -671,8 +698,8 @@ export default function PortfolioManager({ portfolio, setPortfolio, onSave, isSa
                 ))}
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* QUICK ADD MODAL */}
@@ -687,7 +714,7 @@ export default function PortfolioManager({ portfolio, setPortfolio, onSave, isSa
   );
 }
 
-// Subcomponent: Quick Add Modal for adding items to any category
+// Subcomponent: Quick Add Modal
 function QuickAddModal({ category, onClose, onAdd }) {
   const [formData, setFormData] = useState({});
 
@@ -702,9 +729,9 @@ function QuickAddModal({ category, onClose, onAdd }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 700, textTransform: 'capitalize' }}>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 800, textTransform: 'capitalize' }}>
             Add New {category.slice(0, -1) || category}
-          </h2>
+          </h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer' }}>×</button>
         </div>
 
@@ -902,9 +929,9 @@ function QuickAddModal({ category, onClose, onAdd }) {
             </>
           )}
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 22 }}>
             <button type="button" onClick={onClose} className="btn btn-secondary">Cancel</button>
-            <button type="submit" className="btn btn-primary">Add to Portfolio</button>
+            <button type="submit" className="btn btn-primary">Add to Database</button>
           </div>
         </form>
       </div>

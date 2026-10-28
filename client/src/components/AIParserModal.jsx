@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Wand2, Sparkles, Check, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { Wand2, Sparkles, Check, Loader2, AlertCircle } from 'lucide-react';
 import { api } from '../services/api';
 
 export default function AIParserModal({ onMerge, onCancel }) {
@@ -55,37 +55,37 @@ AWS Certified Solutions Architect – Associate (2023)`;
   };
 
   return (
-    <div style={{ maxWidth: 1100, margin: '30px auto', padding: '0 24px' }}>
-      <div className="glass-panel" style={{ padding: 32 }}>
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+    <div className="card">
+      <div className="card-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
-            width: 44,
-            height: 44,
-            borderRadius: 12,
+            width: 38,
+            height: 38,
+            borderRadius: 10,
             background: 'var(--lilac)',
             color: '#64497e',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            <Wand2 size={24} />
+            <Wand2 size={20} />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>Gemini AI Quick-Importer</h2>
-            <p style={{ fontSize: '0.88rem', color: 'var(--muted)' }}>
-              Paste unstructured text, a LinkedIn profile summary, or raw resume markdown. Gemini will automatically parse and validate each field into your portfolio database.
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Gemini AI Quick-Importer</h3>
+            <p style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>
+              Paste raw resumes or bio notes. Gemini extracts verified fields into MongoDB.
             </p>
           </div>
         </div>
+      </div>
 
+      <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         {error && (
           <div style={{ 
             background: '#fdf2f4', 
             border: '1px solid #f2c7ce', 
             borderRadius: 10, 
             padding: '12px 16px', 
-            marginBottom: 20,
             display: 'flex',
             alignItems: 'center',
             gap: 10,
@@ -97,8 +97,7 @@ AWS Certified Solutions Architect – Associate (2023)`;
           </div>
         )}
 
-        {/* Input Text Area */}
-        <div style={{ marginBottom: 20 }}>
+        <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <label style={{ fontWeight: 700 }}>Unstructured Resume / Bio Text</label>
             <button
@@ -111,29 +110,29 @@ AWS Certified Solutions Architect – Associate (2023)`;
           </div>
 
           <textarea
-            rows={10}
+            rows={8}
             style={{ width: '100%', fontFamily: 'inherit', fontSize: '0.9rem', lineHeight: 1.5 }}
-            placeholder="Paste raw resume, bio notes, or LinkedIn export text here..."
+            placeholder="Paste raw text or LinkedIn summary here..."
             value={rawText}
             onChange={e => setRawText(e.target.value)}
           />
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
           <button
             onClick={handleParse}
             disabled={isLoading || !rawText.trim()}
             className="btn btn-primary"
-            style={{ padding: '12px 28px' }}
+            style={{ padding: '10px 24px' }}
           >
             {isLoading ? (
               <>
-                <Loader2 size={18} className="animate-spin" />
+                <Loader2 size={16} className="animate-spin" />
                 Gemini Structuring Data...
               </>
             ) : (
               <>
-                <Sparkles size={18} />
+                <Sparkles size={16} />
                 Process & Structure with Gemini
               </>
             )}
@@ -142,57 +141,56 @@ AWS Certified Solutions Architect – Associate (2023)`;
 
         {/* Extracted Preview */}
         {parsedResult && (
-          <div style={{ marginTop: 30, paddingTop: 24, borderTop: '1px solid var(--line)' }}>
+          <div style={{ borderTop: '1px solid var(--line)', paddingTop: 24, marginTop: 4 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <div>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--ink)' }}>
+                <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--ink)' }}>
                   Structured Extracted Preview
-                </h3>
-                <p style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>
-                  Verified zero-hallucination extraction ready for MongoDB integration.
+                </h4>
+                <p style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>
+                  Grounded candidate facts ready for database merge.
                 </p>
               </div>
 
-              <button onClick={handleApply} className="btn btn-sage" style={{ padding: '10px 22px' }}>
-                <Check size={18} />
+              <button onClick={handleApply} className="btn btn-sage btn-sm">
+                <Check size={16} />
                 Merge into Portfolio Database
               </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
-              <div style={{ background: '#ffffff', border: '1px solid var(--line)', borderRadius: 12, padding: 16 }}>
-                <div style={{ fontWeight: 700, color: 'var(--rose-dark)', marginBottom: 6 }}>Personal Info</div>
-                <div style={{ fontSize: '0.88rem' }}><strong>Name:</strong> {parsedResult.personalInfo?.fullName}</div>
-                <div style={{ fontSize: '0.88rem' }}><strong>Title:</strong> {parsedResult.personalInfo?.title}</div>
-                <div style={{ fontSize: '0.88rem' }}><strong>Email:</strong> {parsedResult.personalInfo?.email}</div>
-                <div style={{ fontSize: '0.88rem' }}><strong>Location:</strong> {parsedResult.personalInfo?.location}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
+              <div style={{ background: '#ffffff', border: '1px solid var(--line)', borderRadius: 12, padding: 14 }}>
+                <div style={{ fontWeight: 700, color: 'var(--rose-dark)', fontSize: '0.82rem', marginBottom: 4 }}>Personal Info</div>
+                <div style={{ fontSize: '0.85rem' }}><strong>Name:</strong> {parsedResult.personalInfo?.fullName}</div>
+                <div style={{ fontSize: '0.85rem' }}><strong>Title:</strong> {parsedResult.personalInfo?.title}</div>
+                <div style={{ fontSize: '0.85rem' }}><strong>Email:</strong> {parsedResult.personalInfo?.email}</div>
               </div>
 
-              <div style={{ background: '#ffffff', border: '1px solid var(--line)', borderRadius: 12, padding: 16 }}>
-                <div style={{ fontWeight: 700, color: 'var(--rose-dark)', marginBottom: 6 }}>Extracted Skills ({parsedResult.skills?.length || 0})</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              <div style={{ background: '#ffffff', border: '1px solid var(--line)', borderRadius: 12, padding: 14 }}>
+                <div style={{ fontWeight: 700, color: 'var(--rose-dark)', fontSize: '0.82rem', marginBottom: 4 }}>Extracted Skills ({parsedResult.skills?.length || 0})</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                   {(parsedResult.skills || []).map((s, idx) => (
-                    <span key={idx} className="badge badge-sage" style={{ fontSize: '0.74rem' }}>{s.name}</span>
+                    <span key={idx} className="badge badge-sage" style={{ fontSize: '0.72rem' }}>{s.name}</span>
                   ))}
                 </div>
               </div>
 
-              <div style={{ background: '#ffffff', border: '1px solid var(--line)', borderRadius: 12, padding: 16 }}>
-                <div style={{ fontWeight: 700, color: 'var(--rose-dark)', marginBottom: 6 }}>Experience & Roles ({parsedResult.experience?.length || 0})</div>
+              <div style={{ background: '#ffffff', border: '1px solid var(--line)', borderRadius: 12, padding: 14 }}>
+                <div style={{ fontWeight: 700, color: 'var(--rose-dark)', fontSize: '0.82rem', marginBottom: 4 }}>Experience ({parsedResult.experience?.length || 0})</div>
                 {(parsedResult.experience || []).map((e, idx) => (
-                  <div key={idx} style={{ fontSize: '0.85rem', marginBottom: 6 }}>
-                    • <strong>{e.role}</strong> at {e.company} ({e.startDate} - {e.endDate})
+                  <div key={idx} style={{ fontSize: '0.82rem', marginBottom: 4 }}>
+                    • <strong>{e.role}</strong> at {e.company}
                   </div>
                 ))}
               </div>
 
-              <div style={{ background: '#ffffff', border: '1px solid var(--line)', borderRadius: 12, padding: 16 }}>
-                <div style={{ fontWeight: 700, color: 'var(--rose-dark)', marginBottom: 6 }}>Education & Certs</div>
+              <div style={{ background: '#ffffff', border: '1px solid var(--line)', borderRadius: 12, padding: 14 }}>
+                <div style={{ fontWeight: 700, color: 'var(--rose-dark)', fontSize: '0.82rem', marginBottom: 4 }}>Education & Certs</div>
                 {(parsedResult.education || []).map((ed, idx) => (
-                  <div key={idx} style={{ fontSize: '0.85rem' }}>• {ed.degree} - {ed.institution}</div>
+                  <div key={idx} style={{ fontSize: '0.82rem' }}>• {ed.degree} ({ed.institution})</div>
                 ))}
                 {(parsedResult.certifications || []).map((c, idx) => (
-                  <div key={idx} style={{ fontSize: '0.85rem' }}>• {c.name} ({c.issuingOrg})</div>
+                  <div key={idx} style={{ fontSize: '0.82rem' }}>• {c.name}</div>
                 ))}
               </div>
             </div>

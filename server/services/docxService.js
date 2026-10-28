@@ -4,8 +4,15 @@ import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, Bord
  * Builds a professional .docx Word document for the tailored resume
  */
 export async function generateResumeDocx(resumeData, personalInfo = {}) {
-  const primaryColor = '98546B'; // --rose-dark
-  const darkInk = '382B32';      // --ink
+  const themeColors = {
+    'modern-blue': { primary: '1D4ED8', text: '0F172A' },
+    'executive-clean': { primary: '18181B', text: '18181B' },
+    'modern-rose': { primary: '98546B', text: '382B32' },
+    'compact-tech': { primary: '0D9488', text: '134E4A' }
+  };
+  const currentTheme = themeColors[resumeData.templateStyle] || themeColors['modern-blue'];
+  const primaryColor = currentTheme.primary;
+  const darkInk = currentTheme.text;
 
   const children = [];
 

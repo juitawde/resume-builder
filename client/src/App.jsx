@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
+import TopHeader from './components/TopHeader';
 import PortfolioManager from './components/PortfolioManager/PortfolioManager';
 import AIParserModal from './components/AIParserModal';
 import ResumeBuilder from './components/ResumeBuilder/ResumeBuilder';
 import GoogleSheetsModal from './components/GoogleSheetsModal';
 import SavedResumes from './components/SavedResumes';
 import { api } from './services/api';
-import { CheckCircle2, AlertCircle } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('portfolio');
@@ -41,7 +42,7 @@ export default function App() {
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 3500);
+    setTimeout(() => setToast(null), 3800);
   };
 
   const handleSavePortfolio = async () => {
@@ -50,7 +51,7 @@ export default function App() {
     try {
       const res = await api.savePortfolio(portfolio);
       if (res.success) {
-        showToast('Portfolio changes successfully saved to MongoDB database!');
+        showToast('Portfolio changes successfully saved to database!');
       } else {
         throw new Error(res.error || 'Failed to save');
       }
@@ -66,7 +67,7 @@ export default function App() {
       const res = await api.loadSample();
       if (res.success && res.portfolio) {
         setPortfolio(res.portfolio);
-        showToast('Full sample portfolio data loaded!');
+        showToast('Rich sample portfolio loaded across all categories!');
       }
     } catch (err) {
       showToast(`Error loading sample: ${err.message}`, 'error');
@@ -95,13 +96,76 @@ export default function App() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Navbar
+    <div className="app-layout">
+      {/* 1. Left Sidebar Navigation */}
+      <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onLoadSample={handleLoadSample}
         health={health}
       />
+
+      {/* 2. Main Studio Area */}
+      <div className="main-content">
+        <TopHeader
+          activeTab={activeTab}
+          portfolio={portfolio}
+          onSave={handleSavePortfolio}
+          isSaving={isSaving}
+        />
+
+        {/* Content Container */}
+        <div className="content-container">
+          {isLoading ? (
+            <div style={{ textAlign: 'center', padding: '120px 20px', color: 'var(--muted)' }}>
+              <Loader2 size={36} className="animate-spin" style={{ margin: '0 auto 16px auto', color: 'var(--rose)' }} />
+              <div style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--ink)' }}>Connecting to ProFolio Studio...</div>
+              <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginTop: 4 }}>Loading candidate portfolio & MongoDB records</p>
+            </div>
+          ) : (
+            <>
+              {activeTab === 'portfolio' && (
+                <PortfolioManager
+                  portfolio={portfolio}
+                  setPortfolio={setPortfolio}
+                  onSave={handleSavePortfolio}
+                  isSaving={isSaving}
+                />
+              )}
+
+              {activeTab === 'resume-builder' && (
+                <ResumeBuilder
+                  portfolio={portfolio}
+                  onSaveToHistory={() => {
+                    showToast('Resume snapshot saved to history!');
+                  }}
+                />
+              )}
+
+              {activeTab === 'ai-parser' && (
+                <AIParserModal
+                  onMerge={handleAIMerge}
+                  onCancel={() => setActiveTab('portfolio')}
+                />
+              )}
+
+              {activeTab === 'sheets' && (
+                <GoogleSheetsModal
+                  portfolio={portfolio}
+                  onSyncSuccess={(lastSynced) => {
+                    setPortfolio(prev => ({ ...prev, lastSyncedWithSheets: lastSynced }));
+                    showToast('Synchronized with Google Sheets successfully!');
+                  }}
+                />
+              )}
+
+              {activeTab === 'history' && (
+                <SavedResumes />
+              )}
+            </>
+          )}
+        </div>
+      </div>
 
       {/* Floating Toast Notification */}
       {toast && (
@@ -118,78 +182,14 @@ export default function App() {
           display: 'flex',
           alignItems: 'center',
           gap: 10,
-          fontSize: '0.9rem',
+          fontSize: '0.88rem',
           fontWeight: 600,
-          animation: 'slideUp 0.25s ease-out'
+          animation: 'slideUp 0.22s ease-out'
         }}>
           {toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
           <span>{toast.message}</span>
         </div>
       )}
-
-      {/* Main Tab Content */}
-      <main style={{ flex: 1, paddingBottom: 60 }}>
-        {isLoading ? (
-          <div style={{ textAlign: 'center', padding: '100px 20px', color: 'var(--muted)' }}>
-            <div style={{ fontSize: '1.2rem', fontWeight: 600 }}>Connecting to ProFolio AI Database...</div>
-          </div>
-        ) : (
-          <>
-            {activeTab === 'portfolio' && (
-              <PortfolioManager
-                portfolio={portfolio}
-                setPortfolio={setPortfolio}
-                onSave={handleSavePortfolio}
-                isSaving={isSaving}
-              />
-            )}
-
-            {activeTab === 'ai-parser' && (
-              <AIParserModal
-                onMerge={handleAIMerge}
-                onCancel={() => setActiveTab('portfolio')}
-              />
-            )}
-
-            {activeTab === 'resume-builder' && (
-              <ResumeBuilder
-                portfolio={portfolio}
-                onSaveToHistory={() => {
-                  showToast('Resume snapshot saved to history!');
-                }}
-              />
-            )}
-
-            {activeTab === 'sheets' && (
-              <GoogleSheetsModal
-                portfolio={portfolio}
-                onSyncSuccess={(lastSynced) => {
-                  setPortfolio(prev => ({ ...prev, lastSyncedWithSheets: lastSynced }));
-                  showToast('Synchronized with Google Sheets successfully!');
-                }}
-              />
-            )}
-
-            {activeTab === 'history' && (
-              <SavedResumes />
-            )}
-          </>
-        )}
-      </main>
-
-      {/* Footer */}
-      <footer className="no-print" style={{
-        borderTop: '1px solid var(--line)',
-        background: 'rgba(255, 254, 253, 0.8)',
-        padding: '16px 24px',
-        textAlign: 'center',
-        fontSize: '0.82rem',
-        color: 'var(--muted)'
-      }}>
-        <span>ProFolio AI — Intelligent Portfolio Management & Job-Specific Dynamic Resume System</span>
-        <span style={{ margin: '0 8px' }}>•</span>
-        <span>Built with React, Node.js, Express, MongoDB & Gemini API</span>
-      </footer>
     </div>
   );
 }
