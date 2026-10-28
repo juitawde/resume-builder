@@ -1,0 +1,11 @@
+{
+  "name": "ai-portfolio-resume-builder",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install:all": "npm --prefix server install && npm --prefix client install",
+    "server": "npm --prefix server run dev",
+    "client": "npm --prefix client run dev",
+    "dev": "node -e \"console.log('Run server and client concurrently or in separate terminals:\\n  npm run server\\n  npm run client')\""
+  }
+}

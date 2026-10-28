@@ -1,0 +1,18 @@
+[
+  {
+    "id": "jd-fullstack-cloud",
+    "title": "Senior Full Stack Cloud Engineer",
+    "company": "Stripe / CloudScale Inc.",
+    "location": "San Francisco, CA / Remote",
+    "roleType": "Full-Time",
+    "description": "We are seeking a Senior Full Stack Cloud Engineer to lead the design and development of our next-generation cloud infrastructure management portal. You will be responsible for building high-performance web applications using React, modern JavaScript/TypeScript, and scalable backend services with Node.js, Express, and MongoDB. You will design cloud-native architectures on AWS, optimize database queries, automate CI/CD pipelines with Docker and GitHub Actions, and collaborate closely with product managers and cross-functional teams to deliver mission-critical software with high availability."
+  },
+  {
+    "id": "jd-ai-ml-engineer",
+    "title": "Staff AI / Generative AI Engineer",
+    "company": "Anthropic / DeepIntelligence Labs",
+    "location": "New York, NY / Remote",
+    "roleType": "Full-Time",
+    "description": "We are looking for an experienced AI / Machine Learning Engineer with deep hands-on expertise in large language models (LLMs), Gemini API, LangChain, RAG (Retrieval-Augmented Generation), vector databases (Pinecone/Chroma), and Python backend services. You will design enterprise document question-answering pipelines, implement strict hallucination guardrails, benchmark time-to-first-token latency, and deploy robust microservices handling millions of multimodal generative queries."
+  }
+]
